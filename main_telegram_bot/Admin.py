@@ -146,7 +146,6 @@ async def input_token_bot(message: Message, state: FSMContext):
                     db.add_admin(f"|{message.text}", "TOKEN")
                     # ЗАПУСК
                     os.kill(int(my_pid), 9)
-                    subprocess.Popen(["python", "start_all_bot.py"])
 
                     await message.answer(MESSAGES['accept_new_bot'], reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
             else:
@@ -158,7 +157,6 @@ async def input_token_bot(message: Message, state: FSMContext):
                     db.add_admin(f"|{message.text}", "TOKEN")
                     # ЗАПУСК
                     os.kill(int(my_pid), 9)
-                    subprocess.Popen(["python", "start_all_bot.py"])
                     await message.answer(MESSAGES['accept_new_bot'], reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
                 else:
                     await message.answer("Не вернаый формат!", reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
