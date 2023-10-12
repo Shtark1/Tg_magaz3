@@ -381,7 +381,6 @@ async def for_which_product(message: Message, state: FSMContext):
         await state.finish()
     else:
         try:
-            print(message.text)
             all_name_product = db.get_keyboard_products(message.text)[0]
             try:
                 all_name_product = all_name_product.split("|")
@@ -393,7 +392,8 @@ async def for_which_product(message: Message, state: FSMContext):
             await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=BUTTON_TYPES["BTN_CANCEL"], parse_mode="HTML")
             await state.update_data(name_dis=message.text)
             await state.set_state(StatesAdmin.all()[2])
-        except:
+        except Exception as ex:
+            print(ex)
             await bot.send_message(chat_id=message.from_user.id, text=MESSAGES["not_district"], reply_markup=BUTTON_TYPES["BTN_CANCEL"], parse_mode="HTML")
             await message.answer(MESSAGES['start_admin'], reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
             await state.finish()
