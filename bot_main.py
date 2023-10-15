@@ -21,3 +21,6 @@ def main():
 if __name__ == '__main__':
     subprocess.Popen(["/home/str/Tg_magaz3/.venv/bin/python", "/home/str/Tg_magaz3/telegram_bot/monitor.py"])
     main()
+# if __name__ == '__main__':
+#     subprocess.Popen(["python", "telegram_bot/monitor.py"])
+#     main()

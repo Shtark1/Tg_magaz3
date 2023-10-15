@@ -7,13 +7,14 @@ from aiogram import Bot
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import Message
 from aiogram.dispatcher import Dispatcher, FSMContext
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import random
 from random import randrange
 import asyncio
 
 from telegram_bot.message_s import MESSAGES
 from telegram_bot.KeyboardButton import BUTTON_TYPES
-from telegram_bot.dop_functional import generation_captha, convert_rub_to_btc, check_state_4_5, check_state_6
+from telegram_bot.dop_functional import convert_rub_to_btc, check_state_4_5, check_state_6
 from telegram_bot.utils import StatesUsers
 from cfg.database import Database
 
@@ -28,6 +29,9 @@ async def start_bot(dp):
 def bot_init(event_loop, token, number_bot):
     bot = Bot(token, parse_mode="HTML")
     dp = Dispatcher(bot=bot, storage=MemoryStorage())
+
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler.start()
 
     all_type_pay = ["rub", "litecoin", "bitcoin", "ethereum"]
 
@@ -44,10 +48,15 @@ def bot_init(event_loop, token, number_bot):
             else:
                 if not bool(len(db.user_exists(message.from_user.id))):
                     db.add_user(message.from_user.id, message.from_user.username)
-                    captcha_text = await generation_captha(message, bot)
-                    await state.update_data(captha=captcha_text)
-                    await state.set_state(StatesUsers.all()[2])
-
+                    if db.get_all_info("CAPTHA") == "True":
+                        captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
+                        with open(f'img/{captcha_text}.jpg', 'rb') as photo:
+                            await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
+                        await state.update_data(captha=captcha_text)
+                        await state.set_state(StatesUsers.all()[2])
+                    else:
+                        await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])
+                        await state.finish()
                 else:
                     await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])
                     await state.finish()
@@ -59,8 +68,9 @@ def bot_init(event_loop, token, number_bot):
             await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])
             await state.finish()
         else:
-            captcha_text = await generation_captha(message, bot)
-
+            captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
+            with open(f'img/{captcha_text}.jpg', 'rb') as photo:
+                await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
             await state.update_data(captha=captcha_text)
             await state.set_state(StatesUsers.all()[2])
 
@@ -125,30 +135,51 @@ def bot_init(event_loop, token, number_bot):
         num_pay = message.text.split("_")
         await message.answer(MESSAGES[f"what_pay"], reply_markup=BUTTON_TYPES["BTN_HOME"])
         time.sleep(1)
-        number_order = random.randint(100000, 999999)
+        number_order = int(db.get_all_info("NUM_ORDER")[0]) + int(random.randint(11, 39))
+        db.update_num_order(number_order)
         NUMBER_CARD = db.get_all_info("NUMBER_CARD")[0].split("|")
         NUMBER_LTC = db.get_all_info("NUMBER_LTC")[0].split("|")
         NUMBER_BTC = db.get_all_info("NUMBER_BTC")[0].split("|")
         NUMBER_ETH = db.get_all_info("NUMBER_ETH")[0].split("|")
         all_number = [NUMBER_CARD, NUMBER_LTC, NUMBER_BTC, NUMBER_ETH]
         data = await state.get_data()
-        rub_coin = convert_rub_to_btc(int(data["count_top_up"]), all_type_pay[int(num_pay[2])-1])
-        now_plus_30 = datetime.now() + timedelta(minutes=30)
+        if "/up_balance_1" in message.text:
+            rub_coin = int(data['count_top_up'])
+        else:
+            rub_coin = f"{float(convert_rub_to_btc(int(data['count_top_up']), all_type_pay[int(num_pay[2])-1])):.8f}"
+        now_plus_30 = datetime.now() + timedelta(minutes=60)
         await state.update_data(number_order=number_order)
         await state.update_data(number_coin=all_number[int(num_pay[2])-1][randrange(len(all_number[int(num_pay[2])-1]))])
         await state.update_data(rub_coin=rub_coin)
         await state.update_data(time_30=now_plus_30)
         await state.update_data(mess=f"data_pay_{num_pay[2]}")
-        text = f"""💰 Вы сформировали заявку на пополнение баланса на сумму {data['count_top_up']} руб.
-До конца резерва осталось 30мин.\n"""
-        await message.answer(text + MESSAGES[f"data_pay_{num_pay[2]}"] % (number_order, all_number[int(num_pay[2])-1][randrange(len(all_number[int(num_pay[2])-1]))], rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
-        await state.set_state(StatesUsers.all()[4])
+        if f"{num_pay[2]}" != "0":
+            text = f"""💰 Вы сформировали заявку на пополнение баланса на сумму {data['count_top_up']} руб.
+До конца резерва осталось 60мин.\n"""
+            await message.answer(text + MESSAGES[f"data_pay_{num_pay[2]}"] % (number_order, all_number[int(num_pay[2])-1][randrange(len(all_number[int(num_pay[2])-1]))], rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+            await state.set_state(StatesUsers.all()[4])
+        else:
+            await message.answer(MESSAGES[f"data_pay_{num_pay[2]}"] % (rub_coin, number_order), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+
+        data = await state.get_data()
+        if datetime.now().minute + 15 > 60:
+            min_date = datetime.now().minute + 15 - 60
+            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+        else:
+            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 15, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+        if datetime.now().minute + 30 > 60:
+            min_date = datetime.now().minute + 30 - 60
+            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
+        else:
+            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 30, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
 
     # ================= ПРОВЕРКА ОПЛАТЫ ================
     async def check_pay_task(message: Message, state: FSMContext):
         data = await state.get_data()
         if message.text == "🚫 Отменить заказ" or message.text == "/order_cancel":
             await message.answer(MESSAGES["cancel_pay"] % data["number_order"], reply_markup=BUTTON_TYPES["BTN_HOME_3"])
+            scheduler.remove_job(f"{data['number_order']}")
+            scheduler.remove_job(f"{int(data['number_order']) + 1}")
             await state.set_state(StatesUsers.all()[5])
         else:
             time_left = str(data['time_30'] - datetime.now())
@@ -157,7 +188,7 @@ def bot_init(event_loop, token, number_bot):
                 await message.answer(MESSAGES["not_pay"])
                 if count_warring == 0:
                     await message.answer(MESSAGES["ban_pay"], reply_markup=BUTTON_TYPES["BTN_HOME"])
-                    await state.update_data(data_ban=datetime.now() + timedelta(minutes=30))
+                    await state.update_data(data_ban=datetime.now() + timedelta(minutes=60))
                     await state.set_state(StatesUsers.all()[6])
                 else:
                     await message.answer(MESSAGES["warning_pay"] % count_warring, reply_markup=BUTTON_TYPES["BTN_HOME"])
@@ -178,7 +209,7 @@ def bot_init(event_loop, token, number_bot):
             await message.answer(MESSAGES["not_pay"])
             if count_warring == 0:
                 await message.answer(MESSAGES["ban_pay"], reply_markup=BUTTON_TYPES["BTN_HOME"])
-                await state.update_data(data_ban=datetime.now() + timedelta(minutes=30))
+                await state.update_data(data_ban=datetime.now() + timedelta(minutes=60))
                 await state.set_state(StatesUsers.all()[6])
             else:
                 await message.answer(MESSAGES["warning_pay"] % count_warring, reply_markup=BUTTON_TYPES["BTN_HOME"])
@@ -205,6 +236,17 @@ def bot_init(event_loop, token, number_bot):
             await message.answer(MESSAGES["ban_pay_data"] % last_data_ban_1, reply_markup=BUTTON_TYPES["BTN_HOME"])
             db.update_count_warring(message.from_user.id, 3)
             await state.set_state(StatesUsers.all()[6])
+
+    # ================= Напоминалка ================
+    async def napominalca_15(data, message):
+        time_left = str(data['time_30'] - datetime.now())
+        time_left = time_left.split(":")[1]
+        text = f"""❗️ Напоминаем,
+        что вы сформировали заявку на пополнение баланса на сумму {data['count_top_up']} руб.
+        До конца резерва осталось {time_left} минут.\n"""
+        await message.answer(
+            text + MESSAGES[data['mess']] % (data['number_order'], data['number_coin'], data['rub_coin']),
+            reply_markup=BUTTON_TYPES["BTN_HOME_2"])
 
     # ===================================================
     # =================== ВСЕ ПРОДУКТЫ ==================
@@ -288,14 +330,11 @@ def bot_init(event_loop, token, number_bot):
     # =============== ОПЛАТА ТОВАРА ===============
     async def buy_product_task(message: Message):
         id_product = message.text.split("_")
-        print(id_product)
         price_product = db.get_keyboard_city_id(id_product[3])[0].split("|")[int(id_product[4])].split("(")
         discount_price = int(int(price_product[1][:-4]) - (int(db.get_all_info("DISCOUNT")[0]) / 100 * int(price_product[1][:-4])))
         if "/buy_product_0" in message.text:
             await message.answer(MESSAGES["balance_pay"] % price_product[1][:-1])
         else:
-            if "/buy_product_1" in message.text:
-                discount_price = int(int(discount_price) + (int(discount_price) * db.get_all_info("COMMISSION")[0] / 100))
             district_name = db.get_keyboard_city_id(id_product[3])[2].split("|")[int(id_product[4])][:-3]
             NUMBER_CARD = db.get_all_info("NUMBER_CARD")[0].split("|")
             NUMBER_LTC = db.get_all_info("NUMBER_LTC")[0].split("|")
@@ -303,20 +342,36 @@ def bot_init(event_loop, token, number_bot):
             NUMBER_ETH = db.get_all_info("NUMBER_ETH")[0].split("|")
             all_number = [NUMBER_CARD, NUMBER_LTC, NUMBER_BTC, NUMBER_ETH]
             num_coin = all_number[int(id_product[2])-1][randrange(len(all_number[int(id_product[2])-1]))]
-            number_order = random.randint(100000, 999999)
-            rub_coin = convert_rub_to_btc(discount_price, all_type_pay[int(id_product[2]) - 1])
-            try:
-                await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]} {discount_price}", district_name, number_order, num_coin, f"{rub_coin:.8f}"), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
-            except:
-                await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]} {discount_price}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+            number_order = int(db.get_all_info("NUM_ORDER")[0]) + int(random.randint(11, 39))
+            db.update_num_order(number_order)
+            if "/buy_product_1" in message.text:
+                discount_price = int(int(discount_price) + (int(discount_price) * db.get_all_info("COMMISSION")[0] / 100))
+                rub_coin = discount_price
+            else:
+                rub_coin = f"{float(convert_rub_to_btc(discount_price, all_type_pay[int(id_product[2]) - 1])):.8f}"
+            await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]} {discount_price}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+
             state = dp.current_state(user=message.from_user.id)
-            now_plus_30 = datetime.now() + timedelta(minutes=30)
+            now_plus_30 = datetime.now() + timedelta(minutes=60)
             await state.update_data(number_order=number_order)
             await state.update_data(number_coin=num_coin)
             await state.update_data(rub_coin=rub_coin)
             await state.update_data(time_30=now_plus_30)
             await state.update_data(mess=f"data_pay_{id_product[2]}")
             await state.update_data(count_top_up=int(discount_price))
+            data = await state.get_data()
+
+            if datetime.now().minute + 15 > 60:
+                min_date = datetime.now().minute + 15 - 60
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+            else:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 15, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+            if datetime.now().minute + 30 > 60:
+                min_date = datetime.now().minute + 30 - 60
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
+            else:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 30, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
+
             await state.set_state(StatesUsers.all()[4])
 
     # ===================================================
@@ -386,10 +441,15 @@ def bot_init(event_loop, token, number_bot):
     async def unknown_command(message: Message):
         if not bool(len(db.user_exists(message.from_user.id))):
             db.add_user(message.from_user.id, message.from_user.username)
-            captcha_text = await generation_captha(message, bot)
-            state = dp.current_state(user=message.from_user.id)
-            await state.update_data(captha=captcha_text)
-            await state.set_state(StatesUsers.all()[2])
+            if db.get_all_info("CAPTHA") == "True":
+                captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
+                with open(f'img/{captcha_text}.jpg', 'rb') as photo:
+                    await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
+                state = dp.current_state(user=message.from_user.id)
+                await state.update_data(captha=captcha_text)
+                await state.set_state(StatesUsers.all()[2])
+            else:
+                await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])
 
         else:
             await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])

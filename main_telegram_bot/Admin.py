@@ -266,7 +266,6 @@ async def all_wallets(message: Message):
     if str(message.from_user.id) in str(ADMIN_ID):
         NUMBER_CARD = db.get_all_info("NUMBER_CARD")[0].split("|")
         NUMBER_BTC = db.get_all_info("NUMBER_BTC")[0].split("|")
-        NUMBER_SIM = db.get_all_info("NUMBER_SIM")[0].split("|")
         NUMBER_LTC = db.get_all_info("NUMBER_LTC")[0].split("|")
 
         text = "<b>ВСЕ ПРИВЯЗАННЫЕ СЧЕТА К МАГАЗИНАМ:</b>\n\n\n<u>Банковские карты</u>\n"
@@ -281,10 +280,6 @@ async def all_wallets(message: Message):
         text += "\n<u>LTC счёт</u>\n"
         for idx, ltc in enumerate(NUMBER_LTC):
             text += f"<b>{idx+1}.</b> <code>{ltc}</code>\n"
-
-        text += "\n<u>SIM счёт</u>\n"
-        for idx, sim in enumerate(NUMBER_SIM):
-            text += f"<b>{idx+1}.</b> <code>{sim}</code>\n"
 
         await message.answer(text, reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"], parse_mode="HTML")
 
@@ -393,7 +388,6 @@ async def for_which_product(message: Message, state: FSMContext):
             await state.update_data(name_dis=message.text)
             await state.set_state(StatesAdmin.all()[2])
         except Exception as ex:
-            print(ex)
             await bot.send_message(chat_id=message.from_user.id, text=MESSAGES["not_district"], reply_markup=BUTTON_TYPES["BTN_CANCEL"], parse_mode="HTML")
             await message.answer(MESSAGES['start_admin'], reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
             await state.finish()
@@ -579,7 +573,7 @@ async def send_m(text_malling):
     for token in all_token:
         for id_user in all_id_users:
             try:
-                url_req = "https://api.telegram.org/bot" + token + "/sendMessage" + "?chat_id=" + str(id_user[0]) + "&text=" + text_malling
+                url_req = "https://api.telegram.org/bot" + token.split(",") + "/sendMessage" + "?chat_id=" + str(id_user[0]) + "&text=" + text_malling
                 requests.get(url_req)
             except:
                 ...
@@ -596,6 +590,30 @@ async def edit_commission(message: Message):
         await bot.send_message(chat_id=message.from_user.id, text=MESSAGES["start_admin"], reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
     else:
         await bot.send_message(chat_id=message.from_user.id, text=MESSAGES["not_command"])
+
+
+# ===================================================
+# ================== ВКЛ/ВЫКЛ КАПЧИ =================
+# ===================================================
+async def on_off_captcha(message: Message):
+    edit_cap = db.update_captha()
+    await message.answer(edit_cap, reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
+
+
+# ===================================================
+# ================== НОМЕР ЗАКАЗА =================
+# ===================================================
+async def edit_num_order(message: Message):
+    try:
+        num_order = int(message.text.split("_")[1])
+        if num_order:
+            db.update_num_order(num_order)
+            await message.answer("Номер заказов изменён")
+
+        else:
+            await message.answer("Вы не ввели номер")
+    except:
+        await message.answer("Неверный формат!", reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
 
 
 # ===================================================
@@ -660,6 +678,12 @@ def register_handler_admin(dp: Dispatcher):
     dp.register_message_handler(input_malling, state=StatesMal.STAT_0)
     # ОСТАНОВИТЬ
     dp.register_message_handler(stop_malling, lambda message: '/stop' in message.text)
+
+    # ВКЛ/ВЫКЛ КАПЧИ
+    dp.register_message_handler(on_off_captcha, lambda message: message.text.lower() == 'капча')
+
+    # НОМЕР ЗАКАЗА
+    dp.register_message_handler(edit_num_order, lambda message: 'номер_' in message.text.lower())
 
     # НЕИЗВЕСТНАЯ КОМАНДА
     dp.register_message_handler(unknown_command, content_types=["text"])

@@ -36,6 +36,9 @@ btn_all_wallets = KeyboardButton("Все кошельки")
 
 btn_edit_min = KeyboardButton("Изменить MIN пополнение")
 
+btn_captha = KeyboardButton("Капча")
+btn_num_edit = KeyboardButton("Номер_")
+
 btn_cancel = KeyboardButton("Отмена")
 
 btn_t = "➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
@@ -43,7 +46,7 @@ btn_t = "➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
 BUTTON_TYPES = {
     "BTN_HOME_ADMIN": ReplyKeyboardMarkup(resize_keyboard=True).add(btn_add_admin, btn_del_admin, btn_all_admin).add(btn_add_bot_main).add(btn_t).
     add(btn_add_city, btn_add_product, btn_add_district).add(btn_del_city, btn_del_product, btn_del_district).add(btn_t).add(btn_malling).add(btn_all_info).add(btn_t).
-    add(btn_add_card, btn_add_btc).add(btn_add_ltc, btn_add_sim).add(btn_t).add(btn_del_card, btn_del_btc).add(btn_del_ltc, btn_del_sim).add(btn_t).add(btn_all_wallets).add(btn_edit_min),
+    add(btn_add_card, btn_add_btc).add(btn_add_ltc, btn_add_sim).add(btn_t).add(btn_del_card, btn_del_btc).add(btn_del_ltc, btn_del_sim).add(btn_t).add(btn_all_wallets).add(btn_edit_min).add(btn_captha).add(btn_num_edit),
 
 
     "BTN_CANCEL": ReplyKeyboardMarkup(resize_keyboard=True).add(btn_cancel),

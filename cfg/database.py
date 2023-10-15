@@ -135,6 +135,21 @@ class Database:
         with self.connection:
             return self.cursor.execute(f"UPDATE config SET PID = '{pid}' WHERE `id` = 1;")
 
+    def update_num_order(self, num_order):
+        with self.connection:
+            return self.cursor.execute(f"UPDATE config SET NUM_ORDER = '{num_order}' WHERE `id` = 1;")
+
+    def update_captha(self):
+        with self.connection:
+            a = self.cursor.execute(f"SELECT `CAPTHA` FROM `config`;").fetchone()[0]
+            if a == "True":
+                self.cursor.execute(f"UPDATE config SET CAPTHA = 'False' WHERE `id` = 1;")
+                return "Теперь капча отключена"
+
+            else:
+                self.cursor.execute(f"UPDATE config SET CAPTHA = 'True' WHERE `id` = 1;")
+                return "Теперь капча включена"
+
     def update_count_warring(self, id_user, new_count_warring):
         with self.connection:
             return self.cursor.execute(f"UPDATE users SET count_warning = '{new_count_warring}' WHERE `user_id` = {id_user};")

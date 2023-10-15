@@ -1,6 +1,4 @@
-from captcha.image import ImageCaptcha
 import requests
-import random
 from datetime import datetime
 
 from telegram_bot.message_s import MESSAGES
@@ -29,24 +27,6 @@ def convert_rub_to_btc(amount, coin):
     except Exception as ex:
         print(ex)
         return "Не удалось получить курс обмена"
-
-
-# ===================================================
-# ================== СОЗДАНИЕ КАПЧИ =================
-# ===================================================
-async def generation_captha(message, bot):
-    image = ImageCaptcha(width=128, height=36, font_sizes=(18, 18, 18))
-
-    random_numbers = []
-    for _ in range(5):
-        random_number = random.randint(0, 9)
-        random_numbers.append(str(random_number))
-    captcha_text = ''.join(random_numbers)
-
-    image.write(captcha_text, f'img/{message.from_user.id}.png')
-    with open(f'img/{message.from_user.id}.png', 'rb') as photo:
-        await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
-    return captcha_text
 
 
 async def check_state_4_5(state, db, message):
