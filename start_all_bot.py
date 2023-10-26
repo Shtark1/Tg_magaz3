@@ -48,7 +48,7 @@ def bot_init(event_loop, token, number_bot):
             else:
                 if not bool(len(db.user_exists(message.from_user.id))):
                     db.add_user(message.from_user.id, message.from_user.username)
-                    if db.get_all_info("CAPTHA") == "True":
+                    if str(db.get_all_info("CAPTHA")) == "True":
                         captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
                         with open(f'img/{captcha_text}.jpg', 'rb') as photo:
                             await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
@@ -441,7 +441,7 @@ def bot_init(event_loop, token, number_bot):
     async def unknown_command(message: Message):
         if not bool(len(db.user_exists(message.from_user.id))):
             db.add_user(message.from_user.id, message.from_user.username)
-            if db.get_all_info("CAPTHA") == "True":
+            if str(db.get_all_info("CAPTHA")) == "True":
                 captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
                 with open(f'img/{captcha_text}.jpg', 'rb') as photo:
                     await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
