@@ -165,12 +165,18 @@ def bot_init(event_loop, token, number_bot):
         data = await state.get_data()
         if datetime.now().minute + 15 > 60:
             min_date = datetime.now().minute + 15 - 60
-            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+            if hour=datetime.now().hour + 1 == 24:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=0, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+            else:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
         else:
             scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 15, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
         if datetime.now().minute + 30 > 60:
             min_date = datetime.now().minute + 30 - 60
-            scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
+            if hour=datetime.now().hour + 1 == 24:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=0, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+            else:
+                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
         else:
             scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 30, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
 
