@@ -294,7 +294,7 @@ async def all_users_reg(message: Message):
     ADMIN_ID = db.get_all_info("ADMIN_ID")[0]
     if str(message.from_user.id) in str(ADMIN_ID):
         write_to_excel_all_users(db.get_all_data(), "all_user.xlsx")
-        with open("all_user.xlsx", 'rb', encoding="utf-8") as file:
+        with open("all_user.xlsx", 'rb', "utf-8") as file:
             await bot.send_document(message.from_user.id, file, reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
         os.remove("all_user.xlsx")
     else:
