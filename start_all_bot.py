@@ -45,6 +45,17 @@ def bot_init(event_loop, token, number_bot):
                 await check_state_4_5(state, db, message)
             elif current_state == "state_6":
                 await check_state_6(state, message, db)
+            elif current_state == "state_2":
+                data = await state.get_data()
+                if message.text == data["captha"]:
+                    await bot.send_message(text=MESSAGES[f"start_user_{number_bot}"], chat_id=message.from_user.id, reply_markup=BUTTON_TYPES["BTN_HOME"])
+                    await state.finish()
+                else:
+                    captcha_text = os.listdir(path="img")[4:][random.randint(0, 9)][0:-4]
+                    with open(f'img/{captcha_text}.jpg', 'rb') as photo:
+                        await bot.send_photo(chat_id=message.chat.id, photo=photo, caption=MESSAGES["captha"])
+                    await state.update_data(captha=captcha_text)
+                    await state.set_state(StatesUsers.all()[2])
             else:
                 if not bool(len(db.user_exists(message.from_user.id))):
                     db.add_user(message.from_user.id, message.from_user.username)
