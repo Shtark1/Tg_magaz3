@@ -283,14 +283,18 @@ def bot_init(event_loop, token, number_bot):
             btn = {'keyboard': [[{'text': '🏠 Меню'}], [{'text': '📦 Все продукты'}, {'text': '👉 Локации'}], [{'text': '💰 Мой последний заказ'}, {'text': '❓ Помощь'}], [{'text': '💰 Баланс'}, {'text': '💰 Пополнить баланс'}]], 'resize_keyboard': True}
             i = 0
             discount_product = db.get_all_info("DISCOUNT")[0]
+            products_dop = []
             for idx, products_db in enumerate(all_products_db):
                 idx+=1
                 products = products_db[0].split("|")
                 for idx2, product in enumerate(products):
-                    product = product.split("(")
-                    btn['keyboard'].insert(i, [{'text': f'{product[0]} /product_{idx}_{idx2}'}])
-                    i += 1
-                    text += f"📦 {product[0]}\n<b>+ скидка до {discount_product}%</b>\nЦена: {product[1][:-4]} руб 👉 /product_{idx}_{idx2}\n- - - - - - - - - - - - - - - -\n"
+                    if product not in products_dop:
+                        product = product.split("(")
+                        btn['keyboard'].insert(i, [{'text': f'{product[0]} /product_{idx}_{idx2}'}])
+                        i += 1
+                        text += f"📦 {product[0]}\n<b>+ скидка до {discount_product}%</b>\nЦена: {product[1][:-4]} руб 👉 /product_{idx}_{idx2}\n- - - - - - - - - - - - - - - -\n"
+                products_dop += products
+
             text = "\n".join(text.split("\n")[:-2]) + "\n"
             await message.answer(MESSAGES["all_products"] % text, reply_markup=btn)
 
@@ -367,7 +371,7 @@ def bot_init(event_loop, token, number_bot):
                 rub_coin = discount_price
             else:
                 rub_coin = f"{float(convert_rub_to_btc(discount_price, all_type_pay[int(id_product[2]) - 1])):.8f}"
-            await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]} {discount_price}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+            await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
 
             state = dp.current_state(user=message.from_user.id)
             now_plus_30 = datetime.now() + timedelta(minutes=60)
