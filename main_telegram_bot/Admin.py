@@ -176,7 +176,7 @@ async def add_pay(message: Message):
             text_mes = MESSAGES["add_card"]
         elif message.text.lower() == "добавить btc":
             text_mes = MESSAGES["add_btc"]
-        elif message.text.lower() == "добавить sim":
+        elif message.text.lower() == "добавить eth":
             text_mes = MESSAGES["add_sim"]
         else:
             text_mes = MESSAGES["add_ltc"]
@@ -198,10 +198,10 @@ async def input_data_pay(message: Message, state: FSMContext):
         data = await state.get_data()
         if data["what_admin"] == 'добавить карту':
             db.add_admin(f"|{message.text}", "NUMBER_CARD")
-        if data["what_admin"] == 'добавить btc':
+        elif data["what_admin"] == 'добавить btc':
             db.add_admin(f"|{message.text}", "NUMBER_BTC")
-        if data["what_admin"] == 'добавить sim':
-            db.add_admin(f"|{message.text}", "NUMBER_SIM")
+        elif data["what_admin"] == 'добавить eth':
+            db.add_admin(f"|{message.text}", "NUMBER_ETH")
         else:
             db.add_admin(f"|{message.text}", "NUMBER_LTC")
         await message.answer("Добавил!", reply_markup=BUTTON_TYPES["BTN_HOME_ADMIN"])
@@ -218,7 +218,7 @@ async def del_pay(message: Message):
             text_mes = MESSAGES["del_card"]
         elif message.text.lower() == "удалить btc":
             text_mes = MESSAGES["del_btc"]
-        elif message.text.lower() == "добавить sim":
+        elif message.text.lower() == "добавить eth":
             text_mes = MESSAGES["del_sim"]
         else:
             text_mes = MESSAGES["del_ltc"]
@@ -243,8 +243,8 @@ async def input_pay_for_del(message: Message, state: FSMContext):
                 what_pay = "NUMBER_CARD"
             elif data["what_admin"] == "Удалить BTC":
                 what_pay = "NUMBER_BTC"
-            elif data["what_admin"] == "Удалить SIM":
-                what_pay = "NUMBER_SIM"
+            elif data["what_admin"] == "Удалить ETH":
+                what_pay = "NUMBER_ETH"
             else:
                 what_pay = "NUMBER_LTC"
 
@@ -469,6 +469,7 @@ async def input_product_name(message: Message, state: FSMContext):
     else:
         data = await state.get_data()
         if data["what_city"].lower() == 'добавить продукт':
+            print("a")
             await bot.send_message(chat_id=message.from_user.id, text=MESSAGES["add_product"], reply_markup=BUTTON_TYPES["BTN_CANCEL"], parse_mode="HTML")
             await state.update_data(name_dis=message.text)
             await state.set_state(StatesAdmin.all()[9])
@@ -574,7 +575,7 @@ async def send_m(text_malling):
     for token in all_token:
         for id_user in all_id_users:
             try:
-                url_req = "https://api.telegram.org/bot" + token.split(",")[0] + "/sendMessage" + "?chat_id=" + str(id_user[0]) + "&text=" + text_malling
+                url_req = "https://api.telegram.org/bot" + token.split(",")[0] + "/sendMessage" + "?chat_id=" + str(id_user[0]) + "&text=" + text_malling + "&parse_mode=HTML"
                 requests.get(url_req)
             except:
                 ...
@@ -705,11 +706,11 @@ def register_handler_admin(dp: Dispatcher):
     dp.register_message_handler(input_token_bot, state=StatesAdmin.STATES_1)
 
     # ДОБАВИТЬ ОПЛАТУ
-    dp.register_message_handler(add_pay, lambda message: message.text.lower() == 'добавить карту' or message.text.lower() == 'добавить btc' or message.text.lower() == 'добавить ltc' or message.text.lower() == 'добавить sim')
+    dp.register_message_handler(add_pay, lambda message: message.text.lower() == 'добавить карту' or message.text.lower() == 'добавить btc' or message.text.lower() == 'добавить ltc' or message.text.lower() == 'добавить eth')
     dp.register_message_handler(input_data_pay, state=StatesMal.STAT_1)
 
     # УДАЛИТЬ ОПЛАТУ
-    dp.register_message_handler(del_pay, lambda message: message.text.lower() == 'удалить карту' or message.text.lower() == 'удалить btc' or message.text.lower() == 'удалить ltc' or message.text.lower() == 'удалить sim')
+    dp.register_message_handler(del_pay, lambda message: message.text.lower() == 'удалить карту' or message.text.lower() == 'удалить btc' or message.text.lower() == 'удалить ltc' or message.text.lower() == 'удалить eth')
     dp.register_message_handler(input_pay_for_del, state=StatesAdmin.STATES_4)
 
     # ВСЕ КОШЕЛЬКИ

@@ -334,12 +334,16 @@ add_district_message = """<b>%s %s
 product_pay_1_message = """❗️ Выберите способ оплаты:
 
 💰 Оплата с баланса 👉 /buy_product_0_%s
+<b>+ скидка до %a</b>
 
 💰 Оплата картой банка 👉 /buy_product_1_%s
+<b>+ скидка до %a</b>
 
 💰 Litecoin (LTC) 👉 /buy_product_2_%s
+<b>+ скидка до %a</b>
 
 💰 Bitcoin (BTC) 👉 /buy_product_3_%s
+<b>+ скидка до %a</b>
 
 ➖➖➖➖➖➖➖➖➖➖➖
 Ⓜ️ Вернуться в меню
@@ -347,14 +351,19 @@ product_pay_1_message = """❗️ Выберите способ оплаты:
 product_pay_2_message = """❗️ Выберите способ оплаты:
 
 💰 Оплата с баланса 👉 /buy_product_0_%s
+<b>+ скидка до %a</b>
 
 💰 Оплата на банковскую карту 👉 /buy_product_1_%s
+<b>+ скидка до %a</b>
 
 💰 Litecoin (LTC) 👉 /buy_product_2_%s
+<b>+ скидка до %a</b>
 
 💰 Bitcoin (BTC) 👉 /buy_product_3_%s
+<b>+ скидка до %a</b>
 
 💰 Ethereum (ETH) 👉 /buy_product_4_%s
+<b>+ скидка до %a</b>
 
 ➖➖➖➖➖➖➖➖➖➖➖
 Ⓜ️ Вернуться в меню
@@ -362,16 +371,22 @@ product_pay_2_message = """❗️ Выберите способ оплаты:
 product_pay_3_message = """❗️ Выберите способ оплаты:
 
 💰 Оплата с баланса 👉 /buy_product_0_%s
+<b>+ скидка до %a</b>
 〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
 💰 Оплата на КАРТУ (без оператора) 👉 /buy_product_1_%s
+<b>+ скидка до %a</b>
 〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
 💰 Оплата ВРУЧНУЮ на КАРТУ (Через оператора) 👉 /up_balance_1_2
+<b>+ скидка до %a</b>
 〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
 💰 Litecoin (LTC) 👉 /buy_product_2_%s
+<b>+ скидка до %a</b>
 〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
 💰 Bitcoin (BTC) 👉 /buy_product_3_%s
+<b>+ скидка до %a</b>
 〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
 💰 Ethereum (ETH) 👉 /buy_product_4_%s
+<b>+ скидка до %a</b>
 
 🔹🔷🔹🔷🔹🔷🔹🔷🔹
 Ⓜ️ Вернуться в меню
@@ -379,12 +394,16 @@ product_pay_3_message = """❗️ Выберите способ оплаты:
 product_pay_4_message = """❗️ Выберите способ оплаты:
 
 💰 Оплата с баланса 👉 /buy_product_0_%s
+<b>+ скидка до %a</b>
 
 💰 Оплата на банковскую карту 👉 /buy_product_1_%s
+<b>+ скидка до %a</b>
 
 💰 Litecoin (LTC) 👉 /buy_product_2_%s
+<b>+ скидка до %a</b>
 
 💰 Bitcoin (BTC) 👉 /buy_product_3_%s
+<b>+ скидка до %a</b>
 
 ➖➖➖➖➖➖➖➖➖➖➖
 Ⓜ️ Вернуться в меню

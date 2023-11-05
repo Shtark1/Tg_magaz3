@@ -28,8 +28,8 @@ btn_del_card = KeyboardButton("Удалить карту")
 btn_add_btc = KeyboardButton("Добавить BTC")
 btn_del_btc = KeyboardButton("Удалить BTC")
 
-btn_add_sim = KeyboardButton("Добавить SIM")
-btn_del_sim = KeyboardButton("Удалить SIM")
+btn_add_sim = KeyboardButton("Добавить ETH")
+btn_del_sim = KeyboardButton("Удалить ETH")
 
 btn_add_ltc = KeyboardButton("Добавить LTC")
 btn_del_ltc = KeyboardButton("Удалить LTC")
@@ -41,6 +41,7 @@ btn_edit_min = KeyboardButton("Изменить MIN пополнение")
 btn_captha = KeyboardButton("Капча")
 btn_num_edit = KeyboardButton("Номер_")
 
+btn_all = KeyboardButton("Все")
 btn_cancel = KeyboardButton("Отмена")
 
 btn_t = "➖➖➖➖➖➖➖➖➖➖➖➖➖➖"
@@ -52,4 +53,5 @@ BUTTON_TYPES = {
 
 
     "BTN_CANCEL": ReplyKeyboardMarkup(resize_keyboard=True).add(btn_cancel),
+    "BTN_CANCEL_ALL": ReplyKeyboardMarkup(resize_keyboard=True).add(btn_all).add(btn_cancel),
 }
