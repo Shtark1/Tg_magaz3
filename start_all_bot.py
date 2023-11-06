@@ -334,10 +334,13 @@ def bot_init(event_loop, token, number_bot):
             all_district = city_product[2].split("|")
             discount_product = db.get_all_info("DISCOUNT")[0]
             for idx, district in enumerate(all_district):
-                if district[-2] == id_product[2]:
-                    btn['keyboard'].insert(i, [{'text': f'{district[:-3]} /district_{id_product[1]}_{id_product[2]}_{idx}'}])
+                # print("".join(district.split("[")[1:]).split("]"))
+                # print(district.split("[")[1:])
+                if id_product[2] in "".join(district.split("[")[1:]).split("]"):
+                    # print(district)
+                    btn['keyboard'].insert(i, [{'text': f'{district.split("[")[0]} /district_{id_product[1]}_{id_product[2]}_{idx}'}])
                     i += 1
-                    text += f"🚩 {district[:-3]}</i>\n<b>+ скидка до {discount_product}%</b>\n<i>Выбрать 👉 /district_{id_product[1]}_{id_product[2]}_{idx}\n- - - - - - - - - - - - - - - -\n"
+                    text += f"🚩 {district.split('[')[0]}</i>\n<b>+ скидка до {discount_product}%</b>\n<i>Выбрать 👉 /district_{id_product[1]}_{id_product[2]}_{idx}\n- - - - - - - - - - - - - - - -\n"
             text = "\n".join(text.split("\n")[:-2]) + "\n"
             await message.answer(MESSAGES["add_district"] % (product_db[0], product_db[1][:-1], city_product[1], text), reply_markup=btn)
         except:
@@ -348,6 +351,21 @@ def bot_init(event_loop, token, number_bot):
         try:
             discount_product = db.get_all_info("DISCOUNT")[0]
             id_product = message.text.split("/")[-1].split("_")
+            # print(id_product)
+            # try:
+            #     dop_districts = db.get_keyboard_city_id(id_product[1])[3].split("|")
+            #     text = ""
+            #     btn = {'keyboard': [[{'text': '🏠 Меню'}], [{'text': '📦 Все продукты'}, {'text': '👉 Локации'}], [{'text': '💰 Мой последний заказ'}, {'text': '❓ Помощь'}], [{'text': '💰 Баланс'}, {'text': '💰 Пополнить баланс'}]], 'resize_keyboard': True}
+            #     i = 0
+            #     print(dop_districts)
+            #     for idx, dop_district in enumerate(dop_districts):
+            #         id_dop_district = dop_district.split("[")[1][0:-1]
+            #         if id_product == id_dop_district:
+            #             btn['keyboard'].insert(i, [{'text': f'{district[:-3]} /district_{id_product[1]}_{id_product[2]}_{idx}'}])
+            #             i += 1
+            #
+            #         print(id_dop_district)
+            # except:
             id_pay_product = f"{id_product[1]}_{id_product[2]}_{id_product[3]}"
             await message.answer(MESSAGES[f"product_pay_{number_bot}"].replace("%s", id_pay_product).replace("%a", f"{discount_product}%"), reply_markup=BUTTON_TYPES["BTN_HOME"])
         except Exception as ex:
@@ -432,11 +450,15 @@ def bot_init(event_loop, token, number_bot):
             btn = {'keyboard': [[{'text': '🏠 Меню'}], [{'text': '📦 Все продукты'}, {'text': '👉 Локации'}], [{'text': '💰 Мой последний заказ'}, {'text': '❓ Помощь'}], [{'text': '💰 Баланс'}, {'text': '💰 Пополнить баланс'}]], 'resize_keyboard': True}
             i = 0
             discount_product = db.get_all_info("DISCOUNT")[0]
+            products_dop = []
+
             for idx, districts in enumerate(all_district[2].split("|")):
-                if f"🏘 {districts[:-3]}\nЖми 👉 " not in text:
-                    btn['keyboard'].insert(i, [{'text': f'{districts[:-3]} /districts_{id_product[1]}_{districts[-2]}'}])
-                    i += 1
-                    text += f"🏘 {districts[:-3]}</i>\n<b>+ скидка до {discount_product}%</b>\n<i>Жми 👉 /districts_{id_product[1]}_{districts[-2]}\n- - - - - - - - - - - - - - - -\n"
+                if f"🏘 {districts.split('[')[0]}\nЖми 👉 " not in text:
+                    if districts.split('[')[0] not in products_dop:
+                        btn['keyboard'].insert(i, [{'text': f'{districts.split("[")[0]} /districts_{id_product[1]}_{districts.split("[")[1][:-1]}'}])
+                        i += 1
+                        text += f"🏘 {districts.split('[')[0]}</i>\n<b>+ скидка до {discount_product}%</b>\n<i>Жми 👉 /districts_{id_product[1]}_{districts.split('[')[1][:-1]}\n- - - - - - - - - - - - - - - -\n"
+                products_dop += [districts.split('[')[0]]
             text = "\n".join(text.split("\n")[:-2]) + "\n"
             await message.answer(MESSAGES["get_district"] % (all_district[1], text), reply_markup=btn)
         except:
