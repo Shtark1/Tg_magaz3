@@ -351,21 +351,6 @@ def bot_init(event_loop, token, number_bot):
         try:
             discount_product = db.get_all_info("DISCOUNT")[0]
             id_product = message.text.split("/")[-1].split("_")
-            # print(id_product)
-            # try:
-            #     dop_districts = db.get_keyboard_city_id(id_product[1])[3].split("|")
-            #     text = ""
-            #     btn = {'keyboard': [[{'text': '🏠 Меню'}], [{'text': '📦 Все продукты'}, {'text': '👉 Локации'}], [{'text': '💰 Мой последний заказ'}, {'text': '❓ Помощь'}], [{'text': '💰 Баланс'}, {'text': '💰 Пополнить баланс'}]], 'resize_keyboard': True}
-            #     i = 0
-            #     print(dop_districts)
-            #     for idx, dop_district in enumerate(dop_districts):
-            #         id_dop_district = dop_district.split("[")[1][0:-1]
-            #         if id_product == id_dop_district:
-            #             btn['keyboard'].insert(i, [{'text': f'{district[:-3]} /district_{id_product[1]}_{id_product[2]}_{idx}'}])
-            #             i += 1
-            #
-            #         print(id_dop_district)
-            # except:
             id_pay_product = f"{id_product[1]}_{id_product[2]}_{id_product[3]}"
             await message.answer(MESSAGES[f"product_pay_{number_bot}"].replace("%s", id_pay_product).replace("%a", f"{discount_product}%"), reply_markup=BUTTON_TYPES["BTN_HOME"])
         except Exception as ex:
@@ -380,7 +365,7 @@ def bot_init(event_loop, token, number_bot):
         if "/buy_product_0" in message.text:
             await message.answer(MESSAGES["balance_pay"] % price_product[1][:-1])
         else:
-            district_name = db.get_keyboard_city_id(id_product[3])[2].split("|")[int(id_product[4])][:-3]
+            district_name = db.get_keyboard_city_id(id_product[3])[2].split("|")[int(id_product[5])].split("[")[0]
             NUMBER_CARD = db.get_all_info("NUMBER_CARD")[0].split("|")
             NUMBER_LTC = db.get_all_info("NUMBER_LTC")[0].split("|")
             NUMBER_BTC = db.get_all_info("NUMBER_BTC")[0].split("|")
