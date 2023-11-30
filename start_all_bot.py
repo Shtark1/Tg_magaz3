@@ -155,7 +155,7 @@ def bot_init(event_loop, token, number_bot):
         NUMBER_ETH = db.get_all_info("NUMBER_ETH")[0].split("|")
         all_number = [NUMBER_CARD, NUMBER_LTC, NUMBER_BTC, NUMBER_ETH]
         data = await state.get_data()
-        if "/up_balance_1" in message.text:
+        if "/up_balance_1" in message.text or "/up_balance_0" in message.text:
             rub_coin = int(data['count_top_up'])
         else:
             rub_coin = f"{float(convert_rub_to_btc(int(data['count_top_up']), all_type_pay[int(num_pay[2])-1])):.8f}"
@@ -370,8 +370,9 @@ def bot_init(event_loop, token, number_bot):
             NUMBER_LTC = db.get_all_info("NUMBER_LTC")[0].split("|")
             NUMBER_BTC = db.get_all_info("NUMBER_BTC")[0].split("|")
             NUMBER_ETH = db.get_all_info("NUMBER_ETH")[0].split("|")
-            all_number = [NUMBER_CARD, NUMBER_LTC, NUMBER_BTC, NUMBER_ETH]
-            num_coin = all_number[int(id_product[2])-1][randrange(len(all_number[int(id_product[2])-1]))]
+            if f"/buy_product_12" not in message.text:
+                all_number = [NUMBER_CARD, NUMBER_LTC, NUMBER_BTC, NUMBER_ETH]
+                num_coin = all_number[int(id_product[2])-1][randrange(len(all_number[int(id_product[2])-1]))]
             number_order = int(db.get_all_info("NUM_ORDER")[0]) + int(random.randint(11, 39))
             db.update_num_order(number_order)
             if "/buy_product_1" in message.text:
@@ -379,7 +380,12 @@ def bot_init(event_loop, token, number_bot):
                 rub_coin = discount_price
             else:
                 rub_coin = f"{float(convert_rub_to_btc(discount_price, all_type_pay[int(id_product[2]) - 1])):.8f}"
-            await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+
+            # await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+            if f"/buy_product_12" not in message.text:
+                await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]}", district_name, number_order, num_coin, rub_coin), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
+            else:
+                await message.answer(MESSAGES[f"buy_product_{id_product[2]}"] % (f"{price_product[0]}", rub_coin, district_name, number_order, rub_coin, number_order), reply_markup=BUTTON_TYPES["BTN_HOME_2"])
 
             state = dp.current_state(user=message.from_user.id)
             now_plus_30 = datetime.now() + timedelta(minutes=60)
@@ -393,15 +399,20 @@ def bot_init(event_loop, token, number_bot):
 
             if datetime.now().minute + 15 > 60:
                 min_date = datetime.now().minute + 15 - 60
-                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+                if datetime.now().hour + 1 == 24:
+                    scheduler.add_job(napominalca_15, trigger='cron', hour=0, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+                else:
+                    scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
             else:
                 scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 15, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
             if datetime.now().minute + 30 > 60:
                 min_date = datetime.now().minute + 30 - 60
-                scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
+                if datetime.now().hour + 1 == 24:
+                    scheduler.add_job(napominalca_15, trigger='cron', hour=0, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order}")
+                else:
+                    scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour + 1, minute=min_date, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
             else:
                 scheduler.add_job(napominalca_15, trigger='cron', hour=datetime.now().hour, minute=datetime.now().minute + 30, start_date=datetime.now(), kwargs={"data": data, "message": message}, id=f"{number_order + 1}")
-
             await state.set_state(StatesUsers.all()[4])
 
     # ===================================================
